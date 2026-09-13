@@ -2,6 +2,7 @@ import { createHmac, createHash } from "node:crypto";
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { addDecimal } from "../lib/money.js";
+import { resolveWithinBase } from "../lib/safe-path.js";
 import type { GateDecision } from "./states.js";
 
 export type LedgerPayload = {
@@ -23,12 +24,15 @@ export type LedgerEntry = {
 const GENESIS = "0".repeat(64);
 
 export class HmacAuditLedger {
+  private readonly path?: string;
+
   constructor(
     private readonly key: string,
-    private readonly path?: string,
+    path?: string,
     private entries: LedgerEntry[] = [],
   ) {
-    if (path) this.load();
+    this.path = path === undefined ? undefined : resolveWithinBase(path);
+    if (this.path) this.load();
   }
 
   append(payload: LedgerPayload): LedgerEntry {

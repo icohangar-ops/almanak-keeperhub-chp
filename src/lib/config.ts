@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { config as loadDotenv } from "dotenv";
+import { resolveWithinBase } from "./safe-path.js";
 
 loadDotenv();
 
@@ -32,7 +32,7 @@ export function parseTokenAddress(value: string | undefined): string | undefined
 export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
   const key = process.env.KEEPERHUB_API_KEY?.trim();
   const fromEnv = parseTokenAddress(process.env.KEEPERHUB_TOKEN_ADDRESS);
-  return {
+  const merged: AppConfig = {
     keeperhubApiKey: key && key.length > 0 ? key : undefined,
     auditLedgerKey: process.env.AUDIT_LEDGER_KEY?.trim() || "demo-ledger-key-not-for-production",
     chainId: Number(process.env.KEEPERHUB_CHAIN_ID ?? "84532"),
@@ -44,12 +44,18 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     tokenAddress: fromEnv,
     transferAmount: process.env.KEEPERHUB_TRANSFER_AMOUNT ?? "0.001",
     useIntentAmount: process.env.KEEPERHUB_USE_INTENT_AMOUNT === "true",
-    policyPath: process.env.CHP_POLICY_PATH ?? resolve(process.cwd(), "policy.example.yaml"),
-    ledgerPath: process.env.CHP_LEDGER_PATH ?? resolve(process.cwd(), ".chp/ledger.jsonl"),
+    policyPath: process.env.CHP_POLICY_PATH ?? "policy.example.yaml",
+    ledgerPath: process.env.CHP_LEDGER_PATH ?? ".chp/ledger.jsonl",
     ...overrides,
+  };
+  return {
+    ...merged,
+    policyPath: resolveWithinBase(merged.policyPath),
+    ledgerPath: resolveWithinBase(merged.ledgerPath),
   };
 }
 
 export function readTextIfExists(path: string): string | undefined {
-  return existsSync(path) ? readFileSync(path, "utf8") : undefined;
+  const safePath = resolveWithinBase(path);
+  return existsSync(safePath) ? readFileSync(safePath, "utf8") : undefined;
 }

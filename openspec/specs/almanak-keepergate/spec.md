@@ -26,3 +26,4 @@ Admit Almanak DeFi intents through a Cubiczan CHP policy gate and, only when LOC
 ### Audit
 - Every gated cycle SHALL append an HMAC-chained ledger entry covering the decision, serialized intent, and execution record.
 - Ledger verification SHALL detect payload or HMAC tampering.
+- Policy, ledger, and other in-process filesystem reads SHALL resolve under the process working directory (or an explicit allowed base) and SHALL reject paths that traverse out of that tree.
