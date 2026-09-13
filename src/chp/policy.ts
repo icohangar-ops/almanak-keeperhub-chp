@@ -3,6 +3,7 @@ import { parse } from "yaml";
 import { z } from "zod";
 import { parseChainRef } from "../lib/chains.js";
 import { assertDecimal } from "../lib/money.js";
+import { resolveWithinBase } from "../lib/safe-path.js";
 
 const PolicySchema = z.object({
   policy_id: z.string(),
@@ -34,7 +35,7 @@ export type Policy = {
 };
 
 export function loadPolicy(path: string): Policy {
-  const raw = parse(readFileSync(path, "utf8"));
+  const raw = parse(readFileSync(resolveWithinBase(path), "utf8"));
   return parsePolicy(raw);
 }
 
