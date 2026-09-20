@@ -189,4 +189,25 @@ Film script: [DEMO.md](./DEMO.md) (≤3 min). `npm run demo` then `npm run demo:
 
 MIT © Cubiczan / Shyam Desigan · `sam@cubiczan.com`
 
+## Propagation notes (wave B)
+
+- **Row 6 (dual-authority governor) — reversed.** The row's portability
+  warning fires: enforcement happens inside the KeeperHub execution service
+  (`src/keeperhub/live.ts` posts `/api/execute/transfer`), not at any surface
+  this repository controls. There is no on-chain policy hook or
+  account-abstraction wallet here to install a second authority into — the
+  CHP gate (`src/chp/gate.ts`) already deny-gates every execution request
+  before KeeperHub sees it, which is the strongest boundary the repo owns.
+  Reopens if KeeperHub exposes a per-transfer policy hook or the desk moves
+  to self-custodied execution.
+- **Row 10 (sealed evidence envelopes) — reversed.** The evidence chain is
+  already integrity-protected locally — `src/chp/ledger.ts` HMAC-SHA256-chains
+  canonical payload digests with verify-on-read — but the permanent-sealing
+  half of the row (batching ledger roots into on-chain or blob storage) has no
+  surface to adopt: all chain interaction is delegated to the KeeperHub HTTP
+  API (simulate/execute transfer only), so anchoring would require a new
+  external contract deployment, not an adoption of the pattern. Reopens when
+  the desk gains a chain surface of its own (self-custodied executor or a
+  KeeperHub attestation endpoint).
+
 [Hackathon page](https://dorahacks.io/hackathon/agent-economy) · [Almanak SDK](https://github.com/almanak-co/sdk) · [KeeperHub MCP](https://docs.keeperhub.com/ai-tools/mcp-server)
